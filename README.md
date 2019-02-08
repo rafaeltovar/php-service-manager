@@ -64,7 +64,6 @@ This is my service **provider**.
 
 ```php
 // MyServiceAProvider.php
-
 class MyServiceAProvider
 extends \ServiceManager\ServiceProvider
 {
@@ -78,7 +77,7 @@ extends \ServiceManager\ServiceProvider
 
     /**
      * This method return the identification of the service
-     * into Service Container
+     * into Service Container (mandatory)
      **/
     public function getServiceId(): string
     {
@@ -86,7 +85,7 @@ extends \ServiceManager\ServiceProvider
     }
 
     /**
-     * This method return the service
+     * This method return the service (mandatory)
      **/
     public function getService()
     {
@@ -101,8 +100,6 @@ We need an `\ServiceManager\ServiceProviderArgumentsInterface`. For example:
 
 ```php
 // MyCustomArguments.php
-use Psr\Log\LoggerInterface;
-
 class MyCustomArguments
 implements \ServiceManager\ServiceProviderArgumentsInterface
 {
@@ -124,8 +121,6 @@ My example service with argument:
 
 ```php
 // MyServiceDebug.php
-use Psr\Log\LoggerInterface;
-
 class MyServiceDebug
 {
     protected $logger;
@@ -146,7 +141,6 @@ My example service provider:
 
 ```php
 // MyServiceDebugProvider.php
-
 class MyServiceDebugProvider
 extends \ServiceManager\ServiceProvider
 {
@@ -168,7 +162,7 @@ extends \ServiceManager\ServiceProvider
 }
 ```
 
-Initialize my service container:
+Initializing my service container:
 
 ```php
 // myproject.php
@@ -178,7 +172,6 @@ use MyServiceDebugProvider,
 use MyCustomArguments;
 
 //...
-
 $serviceContainer = new \ServiceManager\ServiceContainer(
                             [
                                 MyServiceAProvider::class,
@@ -200,6 +193,38 @@ $serviceContainer->get("my-service-a")->test();
 Working.
 ```
 
+## Dependency injection
+
+```php
+// MyServiceA
+class MyServiceB
+{
+    protected $a;
+
+    public function __construct(MyServiceA $a)
+    {
+        $this->a = $a;
+    }
+    public function test()
+    {
+        $this->a->test();
+    }
+}
+```
+
+```php
+use MyServiceB;
+
+//...
+$myB = $serviceContainer->build(MyServiceB::class);
+$myB->test();
+```
+
+```
+// result:
+Working.
+```
+
 ### Alias
 
-// TODO
+*Work in progress*
