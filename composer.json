@@ -1,5 +1,5 @@
 {
-    "name": "rafaeltovar/service-manager",
+    "name": "rafaeltovar/php-service-manager",
     "description": "Simple, light, minimum service manager and dependency injection for PHP.",
     "license": "MIT",
     "require": {
@@ -10,7 +10,7 @@
             "RafaelTovar\\ServiceManager\\": "src"
         }
     },
-    "homepage": "https://github.com/rafaeltovar/service-manager",
+    "homepage": "https://github.com/rafaeltovar/php-service-manager",
     "authors": [
         {
             "name": "Rafael Tovar",
