@@ -1,5 +1,5 @@
 <?php
-namespace RafaelTovar\ServiceManager;
+namespace ServiceManager;
 
 class ControllerBuilder {
     const AUTOCREATE_METHOD = "create";
@@ -8,7 +8,7 @@ class ControllerBuilder {
     protected $container;
     protected $class;
 
-    public function __construct(ServicesContainer $container, string $controller, array $args = [])
+    public function __construct(ServiceContainer $container, string $controller, array $args = [])
     {
         $this->container = $container;
         $this->args = $args;

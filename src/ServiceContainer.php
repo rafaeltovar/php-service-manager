@@ -1,5 +1,5 @@
 <?php
-namespace RafaelTovar\ServiceManager;
+namespace ServiceManager;
 
 use Psr\Container\ContainerInterface;
 
@@ -24,13 +24,32 @@ implements ContainerInterface
             $this->add($prv);
     }
 
-    public function add(string $provider, string $alias = null, string $id = null)
+    /**
+     * Get provider arguments
+     **/
+    protected function getProviderArguments()
+    {
+        return $this->providerArgs;
+    }
+
+    /**
+     * Add an instance object like service
+     **/
+    public function addEnabledService($service, string $id)
+    {
+        $this->enabledServices[$id] = $service;
+    }
+
+    /**
+     * Add a Service Provider
+     **/
+    public function add(string $providerClass, string $alias = null, string $id = null)
     {
         // check if class exists
-        if(!class_exists($provider))
-            throw new \Exception(sprintf("Service Provider Class '%s' doesnt exist.", $provider));
+        if(!class_exists($providerClass))
+            throw new \Exception(sprintf("Service Provider Class '%s' doesnt exist.", $providerClass));
 
-        $provider = new $provider($this->getConfig(), $this->getCore());
+        $provider = $this->buildProvider($providerClass);
         $alias = isset($alias)? $alias: $provider->getServiceType();
         $id = isset($id)? $id: $provider->getServiceId();
 
@@ -40,14 +59,50 @@ implements ContainerInterface
         return $this;
     }
 
-    protected function getProviderArguments()
-    {
-        return $this->providerArgs;
+    /**
+     * Get a Service
+     **/
+    public function get($id) {
+        return $this->getEnabledService($id);
     }
 
-    protected function buildProvider(string $providerClass)
+    /**
+     * Get a Service by alias
+     **/
+    public function getByAlias(string $alias)
     {
-        return new $providerClass($this, $this->getProviderArguments());
+        if(!array_key_exists($alias, $this->aliases)) {
+            $debug = debug_backtrace();
+            throw new Exception\ServiceNotFoundException(sprintf("Alias '%s' not exist! [%s]", $alias, json_encode($debug)));
+        }
+
+        return $this->get($this->aliases[$alias]);
+    }
+
+    /**
+     * Get Service Provider
+     **/
+    public function getProvider(string $id)
+    {
+        if(!$this->has($id)) {
+            $debug = debug_backtrace();
+            throw new Exception\ServiceNotFoundException(sprintf("Service Provider '%s' not exist! [%s]", $id, json_encode($debug)));
+        }
+
+        return $this->providersServices[$id];
+    }
+
+    /**
+     * Instance a Class
+     **/
+    public function build(string $controller)
+    {
+        $args = func_get_args();
+        array_shift($args);
+
+        $builder = new ControllerBuilder($this, $controller, $args);
+        return $builder->build();
+
     }
 
     protected function addProvider(ServiceProvider $provider, string $id)
@@ -63,24 +118,23 @@ implements ContainerInterface
         $this->aliases[$alias] = $id;
     }
 
-    /*protected function getAliasesById(string $id)
+    protected function buildProvider(string $providerClass)
     {
-        return array_keys(array_filter($this->aliases, function($v) use ($id){return $v===$id; }));
-        return array_search($id, $this->aliases);
-    }*/
+        return new $providerClass($this, $this->getProviderArguments());
+    }
 
-    protected function getEnableService(string $id)
+    protected function getEnabledService(string $id)
     {
         if(!$this->hasEnabledService($id))
         {
             $provider = $this->getProvider($id);
 
             $alias    = $provider->getServiceType();
-            $service  = $provider->boot();
+            $service  = $provider->getService();
 
             if(get_class($service) != $alias) {
                 $debug = debug_backtrace();
-                throw new Exception\NotFoundServiceException(sprintf("Service '%s' not is equal to alias '%s' [%s]", get_class($service), $alias, json_encode($debug)));
+                throw new Exception\ServiceNotFoundException(sprintf("Service '%s' not is equal to alias '%s' [%s]", get_class($service), $alias, json_encode($debug)));
             }
 
             $this->addEnabledService($service, $id);
@@ -89,16 +143,7 @@ implements ContainerInterface
         return $this->enabledServices[$id];
     }
 
-    public function addEnabledService($service, string $id)
-    {
-        $this->enabledServices[$id] = $service;
-    }
-
-    public function get($id) {
-        return $this->getEnabledServices($id);
-    }
-
-    protected function hasEnabled($id) : boolean
+    protected function hasEnabledService($id) : bool
     {
         return array_key_exists($id, $this->enabledServices);
     }
@@ -106,36 +151,5 @@ implements ContainerInterface
     public function has($id)
     {
         return array_key_exists($id, $this->providersServices);
-    }
-
-    public function getByAlias(string $alias)
-    {
-        if(!array_key_exists($alias, $this->aliases)) {
-            $debug = debug_backtrace();
-            throw new Exception\NotFoundServiceException(sprintf("Alias '%s' not exist! [%s]", $alias, json_encode($debug)));
-        }
-
-        return $this->get($this->aliases[$alias]);
-    }
-
-    public function getProvider(string $id)
-    {
-        if(!$this->has($id)) {
-            $debug = debug_backtrace();
-            throw new Exception\NotFoundServiceException(sprintf("Service Provider '%s' not exist! [%s]", $id, json_encode($debug)));
-        }
-
-        return $this->providersServices[$id];
-    }
-
-
-    public function build(string $controller)
-    {
-        $args = func_get_args();
-        array_shift($args);
-
-        $builder = new ControllerBuilder($this, $controller, $args);
-        return $builder->build();
-
     }
 }

@@ -1,5 +1,5 @@
 <?php
-namespace RafaelTovar\ServiceManager;
+namespace ServiceManager;
 
 abstract class ServiceProvider
 {
