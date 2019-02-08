@@ -196,7 +196,7 @@ Working.
 ## Dependency injection
 
 ```php
-// MyServiceA
+// MyServiceB.php
 class MyServiceB
 {
     protected $a;
