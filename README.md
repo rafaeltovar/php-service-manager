@@ -7,19 +7,10 @@ Simple, light, minimum service manager and dependency injection for PHP.
 
 ### Composer
 
-Add to `composer.json` of your project this lines.
+Execute:
 
 ```
-"repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/rafaeltovar/php-service-manager"
-        }
-    ],
-    "require": {
-        // OTHER REQUERIMENTS
-        "rafaeltovar/php-service-manager": "dev-master"
-    }
+composer require rafaeltovar/php-service-manager
 ```
 
 ## Features
