@@ -3,5 +3,5 @@ namespace ServiceManager;
 
 interface ControllerBuilderCreateInterface
 {
-    public static function create(ServicesContainer $services);
+    public static function create(ServiceContainer $services);
 }
