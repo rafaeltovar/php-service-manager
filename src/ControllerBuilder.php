@@ -21,8 +21,7 @@ class ControllerBuilder {
     public function getConstructArgsTypes()
     {
         $construct = $this->class->getConstructor();
-        $parameters = $construct->getParameters();
-        return array_map(function($param) { return $param->getType()->__toString(); }, $parameters);
+        return isset($construct)? array_map(function($param) { return $param->getType()->__toString(); }, $construct->getParameters()) : [];
     }
 
     public function build()
