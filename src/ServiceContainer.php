@@ -148,8 +148,13 @@ implements ContainerInterface
         return array_key_exists($id, $this->enabledServices);
     }
 
-    public function has($id)
+    protected function hasProvider($id) : bool
     {
         return array_key_exists($id, $this->providersServices);
+    }
+
+    public function has($id)
+    {
+        return $this->hasProvider($id) || $this->hasEnabledService($id);
     }
 }
