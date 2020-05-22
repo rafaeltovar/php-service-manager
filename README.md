@@ -22,7 +22,7 @@ composer require rafaeltovar/php-service-manager
 - [x] Initialized only if service is called
 - [x] Alias
 
-## Instructions
+## Documentation
 
 ### Service container
 
@@ -239,7 +239,7 @@ implements ControllerBuilderCreateInterface
     public static function create(ServiceContainer $services)
     {
         return new MyController(
-            $services->get('config')->get("PUBLIC_FOLDER");
+            $services->get('config')->get("PUBLIC_FOLDER")
         );
     }
 }
