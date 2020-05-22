@@ -18,7 +18,8 @@ composer require rafaeltovar/php-service-manager
 - [x] Dependency injection
 - [x] Service container
 - [x] Providers
-- [x] Auto initialize the service when is called
+- [x] Singleton strategy
+- [x] Initialized only if service is called
 - [x] Alias
 
 ## Instructions
@@ -87,7 +88,27 @@ extends \ServiceManager\ServiceProvider
 
 #### Passing custom arguments to the provider
 
-We need an `\ServiceManager\ServiceProviderArgumentsInterface`. For example:
+Sometimes We need pass some arguments to the provider for initialize the service, like the config or logger, for example. In this case we need implements `\ServiceManager\ServiceProviderArgumentsInterface`.
+
+`MyCustomArguments` will have the arguments it needs.
+
+```php
+// myproject.php
+use MyServiceDebugProvider,
+    MyServiceAProvider;
+
+use MyCustomArguments;
+
+//...
+$serviceContainer = new \ServiceManager\ServiceContainer(
+                            [
+                                MyServiceAProvider::class,
+                                MyServiceDebugProvider::class
+                            ],
+                            [],
+                            new MyCustomArguments($myLogger)
+                        );
+```
 
 ```php
 // MyCustomArguments.php
@@ -153,26 +174,6 @@ extends \ServiceManager\ServiceProvider
 }
 ```
 
-Initializing my service container:
-
-```php
-// myproject.php
-use MyServiceDebugProvider,
-    MyServiceAProvider;
-
-use MyCustomArguments;
-
-//...
-$serviceContainer = new \ServiceManager\ServiceContainer(
-                            [
-                                MyServiceAProvider::class,
-                                MyServiceDebugProvider::class
-                            ],
-                            [],
-                            new MyCustomArguments($myLogger)
-                        );
-```
-
 ### Getting a service
 
 ```php
@@ -187,8 +188,8 @@ Working.
 ## Dependency injection
 
 ```php
-// MyServiceB.php
-class MyServiceB
+// MyController.php
+class MyController
 {
     protected $a;
 
@@ -204,10 +205,10 @@ class MyServiceB
 ```
 
 ```php
-use MyServiceB;
+use MyController;
 
 //...
-$myB = $serviceContainer->build(MyServiceB::class);
+$myB = $serviceContainer->build(MyController::class);
 $myB->test();
 ```
 
@@ -218,4 +219,74 @@ Working.
 
 ### Alias
 
-*Work in progress*
+Other times we need to work with interfaces, we can use aliases to obtain the services that implement these interfaces.
+
+```php
+// myproject.php
+use MyServiceDebugProvider,
+    MyServiceAProvider;
+
+use MyCustomArguments;
+
+//...
+$serviceContainer = new \ServiceManager\ServiceContainer(
+                            [
+                                MyLoggerProvider::class,
+                            ],
+                            [ // aliases
+                                // interface => service id
+                                \Psr\Log\LoggerInterface::class => "logger"
+                            ]
+                        );
+```
+
+```php
+// MyServiceDebugProvider.php
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+
+class MyLoggerProvider
+extends \ServiceManager\ServiceProvider
+{
+    public function getServiceType() : string
+    {
+        return Logger::class;
+    }
+
+    public function getServiceId(): string
+    {
+        return "logger";
+    }
+
+    public function getService()
+    {   
+        $log = new Logger('name');
+        $log->pushHandler(new StreamHandler('path/to/your.log', Logger::WARNING));
+        return $log;
+    }
+}
+```
+
+Now we can build our controller with interface dependency.
+
+```php
+// MyController.php
+class MyController
+{
+    protected $logger;
+
+    public function __construct(\Psr\Log\LoggerInterface $logger)
+    {
+        $this->logger = $logger; // this logger will be \Monolog\Logger
+    }
+
+    // ...
+}
+```
+
+```php
+use MyController;
+
+//...
+$myB = $serviceContainer->build(MyController::class);
+```
