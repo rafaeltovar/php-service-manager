@@ -208,13 +208,50 @@ class MyController
 use MyController;
 
 //...
-$myB = $serviceContainer->build(MyController::class);
-$myB->test();
+$myCtrl = $serviceContainer->build(MyController::class);
+$myCtrl->test();
 ```
 
 ```
 // result:
 Working.
+```
+
+### Custom builders
+
+Sometime our controller need other controller or data, not a service. In those cases we can create a custom constructor implements `ControllerBuilderCreateInterface`.
+
+```php
+// MyController.php
+use ServiceManager\ServiceContainer,
+    ServiceManager\ControllerBuilderCreateInterface;
+
+class MyController
+implements ControllerBuilderCreateInterface
+{
+    protected $public;
+
+    public function __construct(string $publicFolder)
+    {
+        $this->public = $publicFolder;
+    }
+
+    public static function create(ServiceContainer $services)
+    {
+        return new MyController(
+            $services->get('config')->get("PUBLIC_FOLDER");
+        );
+    }
+}
+```
+
+Now we can build our controller. The service container will call to `create` method if implements `ControllerBuilderCreateInterface`.
+
+```php
+use MyController;
+
+//...
+$myCtrl = $serviceContainer->build(MyController::class);
 ```
 
 ### Alias
@@ -288,5 +325,5 @@ class MyController
 use MyController;
 
 //...
-$myB = $serviceContainer->build(MyController::class);
+$myCtrl = $serviceContainer->build(MyController::class);
 ```
