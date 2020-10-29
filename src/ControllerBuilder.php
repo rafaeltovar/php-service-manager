@@ -52,7 +52,7 @@ class ControllerBuilder {
 
     protected function getArgByType($type)
     {
-        $args = array_filter($this->args, function($arg) use($type) { return get_class($arg) == $type; });
+        $args = array_filter($this->args, function($arg) use($type) { return get_class($arg) == $type || $arg instanceOf $type;; });
 
         if(sizeof($args) == 0)
             return null;
